@@ -23,7 +23,7 @@ import TrashedDocs from "./docs-management/TrashedDocs";
 const App = () => {
   return (
     <ShortcutProvider>
-      <BrowserRouter basename="/client">
+      <BrowserRouter basename="/">
         <CommandPalette />
         <ShortcutsModal />
        
