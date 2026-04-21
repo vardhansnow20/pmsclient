@@ -1111,9 +1111,9 @@ const trashItem = async (item) => {
     };
 
     const UploadedInfo = ({ meta }) => {
-      if (!meta?.uploadedAt) return null;
+      if (!meta?.uploadedAt) return <span className="text-xs text-muted-foreground">—</span>;
       return (
-        <span className="text-xs font-bold text-foreground">
+        <span className="text-xs font-medium text-foreground">
           {formatUploadedAt(meta.uploadedAt)}
         </span>
       );
@@ -1128,8 +1128,7 @@ const trashItem = async (item) => {
     //   );
     // };
     const getStatusChip = (meta, isFolder) => {
-      // Return null for folders - don't show status chips for folders
-      if (isFolder) return null;
+      if (isFolder) return <span className="text-xs text-muted-foreground/40">—</span>;
 
       const chips = [];
 
@@ -1183,7 +1182,7 @@ const trashItem = async (item) => {
       }
 
       // ======= SHOW NOTHING IF NO STATUS =======
-      if (chips.length === 0) return null;
+      if (chips.length === 0) return <span className="text-xs text-muted-foreground">—</span>;
 
       return <div className="flex gap-1 flex-wrap">{chips}</div>;
     };
@@ -1284,8 +1283,9 @@ const trashItem = async (item) => {
               </td>
 
               {/* Name Column with indentation */}
-              <td className="py-3" style={{ paddingLeft: `${level * 16 + 8}px` }}>
+              <td className="py-3 px-2 overflow-hidden">
                 <div className="flex items-center">
+                  {level > 0 && <span className="shrink-0" style={{ width: `${level * 16}px` }} />}
                   {isFolder ? (
                     <>
                       <button
@@ -1299,7 +1299,7 @@ const trashItem = async (item) => {
                           : <FolderClosedIcon size={16} className="text-amber-500" />}
                       </button>
                       <span
-                        className={`text-sm font-medium cursor-pointer ml-0.5 ${
+                        className={`text-sm font-medium cursor-pointer ml-0.5 truncate ${
                           meta.readOnly ? "text-muted-foreground" : "text-foreground"
                         }`}
                         onClick={() => toggleFolder(fullPath, meta.readOnly)}
@@ -1323,7 +1323,7 @@ const trashItem = async (item) => {
                       <span className="mr-2">{getFileIcon(item.name)}</span>
                       <div className="flex flex-col">
                         <span
-                          className={`text-sm ${
+                          className={`text-sm truncate block max-w-full ${
                             meta.readOnly
                               ? "text-muted-foreground cursor-not-allowed"
                               : "text-primary underline cursor-pointer"
@@ -1347,60 +1347,37 @@ const trashItem = async (item) => {
                 </div>
               </td>
 
-              <td className="py-3 px-3">
-                <div>{getStatusChip(meta, isFolder)}</div>
+              <td className="py-3 px-3 overflow-hidden">
+                {getStatusChip(meta, isFolder)}
               </td>
 
-              <td className="py-3 px-3">
+              <td className="py-3 px-3 overflow-hidden">
                 <UploadedInfo meta={meta} />
               </td>
-              <td className="py-3 px-3">
-                <span className="text-[12px] font-medium text-muted-foreground">{meta.uploadedBy}</span>
+              <td className="py-3 px-3 overflow-hidden">
+                <span className="text-[12px] font-medium text-muted-foreground truncate block">
+                  {meta.uploadedBy || "—"}
+                </span>
               </td>
 
-              <td className="py-3 px-3 text-right">
-                {!hideMenu && (
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground transition-all duration-150"
-                    onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
-                  >
-                    <MoreVertIcon size={14} />
-                  </button>
-                )}
+              <td className="py-3 px-2 text-right overflow-hidden">
+                <div className="flex justify-end">
+                  {!hideMenu && (
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground transition-all duration-150 shrink-0"
+                      onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
+                    >
+                      <MoreVertIcon size={14} />
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
 
             {/* Render children if folder is expanded */}
-            {isFolder && item.children && item.children.length > 0 && (
-              <AnimatePresence initial={false}>
-                {expandedFolders[fullPath] && (
-                  <motion.tr
-                    key={`expand-${fullPath}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                    style={{ display: "contents" }}
-                  >
-                    <td colSpan={6} style={{ padding: 0 }}>
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                        style={{ overflow: "hidden" }}
-                      >
-                        <table className="w-full text-sm">
-                          <tbody>
-                            {renderTableRows(item.children, level + 1, fullPath, insideRestricted)}
-                          </tbody>
-                        </table>
-                      </motion.div>
-                    </td>
-                  </motion.tr>
-                )}
-              </AnimatePresence>
+            {isFolder && item.children && item.children.length > 0 && expandedFolders[fullPath] && (
+              renderTableRows(item.children, level + 1, fullPath, insideRestricted)
             )}
           </React.Fragment>
         );
@@ -1890,8 +1867,16 @@ const trashItem = async (item) => {
           </div>
 
           {isLoading ? (
-            <div className="overflow-auto">
-              <table className="w-full text-sm">
+            <div className="w-full overflow-hidden">
+              <table className="w-full table-fixed text-sm">
+                <colgroup>
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "35%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "17%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "8%" }} />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
                     <th className="w-12 px-4 py-3"><div className="flex items-center justify-center"><Skeleton className="h-4 w-4 rounded" /></div></th>
@@ -1922,8 +1907,16 @@ const trashItem = async (item) => {
               </table>
             </div>
           ) : folderTree && folderTree.length > 0 ? (
-            <div className="overflow-auto">
-              <table className="w-full text-sm">
+            <div className="w-full overflow-hidden">
+              <table className="w-full table-fixed text-sm">
+                <colgroup>
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "35%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "17%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "8%" }} />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
                     <th className="w-12 px-4 py-3">

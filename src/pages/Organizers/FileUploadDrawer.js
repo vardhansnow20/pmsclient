@@ -470,10 +470,10 @@ const FileUploadDrawer = ({
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[1202] bg-black/40 backdrop-blur-sm" onClick={onClose} />
       )}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-full max-w-md bg-background border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-[1203] h-full w-full max-w-md bg-background border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

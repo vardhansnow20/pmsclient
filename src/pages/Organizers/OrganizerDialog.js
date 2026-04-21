@@ -3504,6 +3504,15 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   const visibleSections = getVisibleSections();
   const totalSteps = visibleSections.length;
 
+  // Clamp activeStep whenever visibleSections shrinks (e.g. conditional sections hide)
+  useEffect(() => {
+    if (totalSteps > 0 && activeStep >= totalSteps) {
+      setActiveStep(totalSteps - 1);
+    }
+  }, [totalSteps, activeStep]);
+
+  const safeStep = totalSteps > 0 ? Math.max(0, Math.min(activeStep, totalSteps - 1)) : 0;
+
   const shouldShowElement = (element, sectionId) => {
     const settings = element.questionsectionsettings;
     if (!settings?.conditional) return true;
@@ -3622,14 +3631,14 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleNext = () => {
-    if (activeStep < totalSteps - 1) {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    if (safeStep < totalSteps - 1) {
+      setActiveStep(safeStep + 1);
     }
   };
 
   const handleBack = () => {
-    if (activeStep > 0) {
-      setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    if (safeStep > 0) {
+      setActiveStep(safeStep - 1);
     }
   };
 
@@ -4332,7 +4341,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
               {/* Section selector + progress */}
               <div className="px-6 pt-4 pb-3 border-b border-border bg-card/50 shrink-0 space-y-3">
                 <select
-                  value={activeStep}
+                  value={safeStep}
                   onChange={handleDropdownChange}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
@@ -4356,7 +4365,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                 <div className="relative w-full h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className="absolute left-0 top-0 h-full rounded-full bg-primary transition-all duration-300"
-                    style={{ width: `${((activeStep + 1) / totalSteps) * 100}%` }}
+                    style={{ width: `${totalSteps > 0 ? ((safeStep + 1) / totalSteps) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -4365,7 +4374,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
               <div className="flex-1 overflow-y-auto px-6 md:px-12 lg:px-20 py-6">
                 {visibleSections.map(
                   (section, sectionIndex) =>
-                    sectionIndex === activeStep &&
+                    sectionIndex === safeStep &&
                     renderSection(section, section.isRepeated, section.originalSectionId)
                 )}
               </div>
@@ -4373,7 +4382,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
               {/* Footer nav */}
               <div className="shrink-0 flex items-center justify-between px-6 py-4 border-t border-border bg-card">
                 <div className="flex items-center gap-3">
-                  {activeStep > 0 && (
+                  {safeStep > 0 && (
                     <button
                       type="button"
                       onClick={handleBack}
@@ -4383,7 +4392,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                       Back
                     </button>
                   )}
-                  {activeStep < totalSteps - 1 && (
+                  {safeStep < totalSteps - 1 && (
                     <button
                       type="button"
                       onClick={handleNext}
@@ -4403,7 +4412,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Step {activeStep + 1} of {totalSteps}
+                  Step {safeStep + 1} of {totalSteps}
                 </p>
               </div>
             </div>
